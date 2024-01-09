@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  php:
+    build:
+      context: ./back
+      dockerfile: Dockerfile_PHP
+    volumes:
+      - ./back:/var/www/html/back 
+    networks:
+      - backend-network
+
+  redis:
+    image: redis:latest
+    networks:
+      - backend-network
+
+  mysql:
+    image: mysql:latest
+    volumes:
+      - ./data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: 123
+      MYSQL_DATABASE: 123
+      MYSQL_USER: 123
+      MYSQL_PASSWORD: 123
+    networks:
+      - backend-network
+
+  node:
+    build:
+      context: ./front
+      dockerfile: Dockerfile_JS
+    volumes:
+      - ./front:/app
+    networks:
+      - frontend-network
+
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./front/build:/var/www/html/front
+      - ./back/public:/var/www/html/back/public
+    ports:
+      - "80:80"
+    networks:
+      - frontend-network
+      - backend-network
+    depends_on:
+      - php
+      - node
+      - mysql
+
+networks:
+  backend-network:
+  frontend-network:
